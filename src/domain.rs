@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::net::IpAddr;
+use std::net::Ipv4Addr;
 use uuid::Uuid;
 
 pub const PROFILE_SCHEMA_VERSION: u32 = 1;
@@ -91,6 +91,16 @@ impl Profile {
                 "must contain supported BCP 47 locales",
             ));
         }
+        if !is_supported_region(
+            &self.region.country_code,
+            &self.region.timezone,
+            &self.region.locale,
+        ) {
+            issues.push(issue(
+                "region",
+                "must be a supported Kazakhstan or Brazil locale/timezone combination",
+            ));
+        }
         match (self.region.latitude, self.region.longitude) {
             (Some(lat), Some(lon))
                 if (-90.0..=90.0).contains(&lat) && (-180.0..=180.0).contains(&lon) => {}
@@ -119,10 +129,11 @@ impl Profile {
             issues.push(issue("hardware.gpu_class", "must identify a catalog class"));
         }
         if let Some(proxy) = &self.proxy {
-            if proxy.host.trim().is_empty()
-                || proxy.host.parse::<IpAddr>().is_err() && !is_hostname(&proxy.host)
-            {
-                issues.push(issue("proxy.host", "must be an IP address or DNS hostname"));
+            if proxy.host.parse::<Ipv4Addr>().is_err() {
+                issues.push(issue("proxy.host", "must be an IPv4 address"));
+            }
+            if proxy.port == 0 {
+                issues.push(issue("proxy.port", "must be between 1 and 65535"));
             }
             if matches!(proxy.scheme, ProxyScheme::Socks5) && !proxy.resolve_dns_through_proxy {
                 issues.push(issue(
@@ -151,17 +162,14 @@ fn is_locale(v: &str) -> bool {
             (2..=8).contains(&part.len()) && part.bytes().all(|b| b.is_ascii_alphanumeric())
         })
 }
-fn is_hostname(v: &str) -> bool {
-    v.len() <= 253
-        && v.split('.').all(|label| {
-            !label.is_empty()
-                && label.len() <= 63
-                && !label.starts_with('-')
-                && !label.ends_with('-')
-                && label
-                    .bytes()
-                    .all(|b| b.is_ascii_alphanumeric() || b == b'-')
-        })
+fn is_supported_region(country: &str, timezone: &str, locale: &str) -> bool {
+    match country {
+        "KZ" => {
+            matches!(locale, "kk-KZ" | "ru-KZ") && matches!(timezone, "Asia/Almaty" | "Asia/Aqtobe")
+        }
+        "BR" => locale == "pt-BR" && matches!(timezone, "America/Sao_Paulo" | "America/Manaus"),
+        _ => false,
+    }
 }
 
 #[cfg(test)]
@@ -172,14 +180,14 @@ pub(crate) mod tests {
         Profile {
             id: Uuid::new_v4(),
             revision: 0,
-            name: "Berlin QA".into(),
+            name: "Almaty QA".into(),
             region: RegionProfile {
-                country_code: "DE".into(),
-                timezone: "Europe/Berlin".into(),
-                locale: "de-DE".into(),
-                languages: vec!["de-DE".into(), "de".into()],
-                latitude: Some(52.52),
-                longitude: Some(13.405),
+                country_code: "KZ".into(),
+                timezone: "Asia/Almaty".into(),
+                locale: "kk-KZ".into(),
+                languages: vec!["kk-KZ".into(), "kk".into()],
+                latitude: Some(43.2389),
+                longitude: Some(76.8897),
             },
             hardware: HardwareProfile {
                 architecture: Architecture::X86_64,
@@ -190,7 +198,7 @@ pub(crate) mod tests {
             },
             proxy: Some(ProxyProfile {
                 scheme: ProxyScheme::Socks5,
-                host: "proxy.example.com".into(),
+                host: "192.0.2.1".into(),
                 port: 1080,
                 resolve_dns_through_proxy: true,
             }),
@@ -209,6 +217,18 @@ pub(crate) mod tests {
         p.region.country_code = "Germany".into();
         p.hardware.logical_cores = 7;
         p.proxy.as_mut().unwrap().resolve_dns_through_proxy = false;
-        assert_eq!(p.validate().len(), 4);
+        assert_eq!(p.validate().len(), 5);
+    }
+
+    #[test]
+    fn rejects_unsupported_region_and_non_ipv4_proxy() {
+        let mut p = valid_profile();
+        p.region.country_code = "US".into();
+        p.region.timezone = "America/New_York".into();
+        p.region.locale = "en-US".into();
+        p.proxy.as_mut().unwrap().host = "proxy.example.com".into();
+        let issues = p.validate();
+        assert!(issues.iter().any(|v| v.path == "region"));
+        assert!(issues.iter().any(|v| v.path == "proxy.host"));
     }
 }
