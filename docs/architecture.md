@@ -30,8 +30,7 @@ object. Chromium-specific DTO не проникают в domain.
 
 ### Profile domain
 
-Определяет схему, типы, ranges, cross-field invariants, региональные и
-аппаратные классы, версию формата и
+Определяет схему, типы, ranges, cross-field invariants, версию формата и
 операции создания/изменения. Отдельный `ProfileValidator` возвращает все
 нарушения с путями полей. Генератор выбирает только из версионированного
 каталога поддерживаемых согласованных классов; он не генерирует независимо
@@ -63,9 +62,8 @@ injection, extension overrides и изменение built-ins после заг
 Каждая поверхность имеет одного владельца-провайдера. Например, Blink получает
 navigator/display/Intl значения через platform interfaces, network service —
 headers/proxy/DNS, content permissions — media/permission identities, GPU
-process — согласованные GPU identity, backend и capabilities, V8/renderer —
-CPU architecture/features, cores и memory bucket. И обычный API, и
-Worker/iframe/worklet используют один snapshot.
+process — graphics capabilities. И обычный API, и Worker/iframe/worklet
+используют один snapshot.
 
 ### Storage
 

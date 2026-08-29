@@ -22,12 +22,16 @@
 - [WebGPU](https://www.w3.org/TR/webgpu/) и [WebGL](https://registry.khronos.org/webgl/specs/latest/1.0/) — graphics capabilities и observable contracts.
 - [Permissions](https://www.w3.org/TR/permissions/) и [Media Capture and Streams](https://www.w3.org/TR/mediacapture-streams/) — permission/device semantics.
 
-## Локальная панель
+## Панель и размещение
 
+- [GitHub Pages documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) — static hosting model.
+- [Cloudflare Pages documentation](https://developers.cloudflare.com/pages/) — static assets и optional server-side Functions.
 - [OWASP DNS rebinding prevention](https://cheatsheetseries.owasp.org/cheatsheets/DNS_Rebinding_Attack_Prevention_Cheat_Sheet.html) — защита loopback API.
 - [W3C Content Security Policy](https://www.w3.org/TR/CSP3/) — ограничение источников локальной SPA.
 
 ## Ограничение актуальности
 
-Версия Chromium меняется. Точная версия принадлежит `chromium-baseline.md`;
-production control plane остаётся локальным и не зависит от внешнего hosting.
+Версия Chromium и условия hosting меняются. Точная версия принадлежит
+`chromium-baseline.md`; перед реализацией deployment сверяются актуальные
+официальные условия. Архитектурное решение не зависит от наличия бесплатного
+тарифа: production control plane остаётся локальным.

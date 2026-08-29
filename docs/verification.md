@@ -23,10 +23,8 @@ network. Assertions сравнивают не только expected значен
 - UA ↔ UA-CH ↔ Chromium build ↔ OS/architecture;
 - locale ↔ languages ↔ `Accept-Language` ↔ Intl;
 - timezone ↔ geolocation ↔ явно заданная proxy policy;
-- выбранный регион ↔ фактический proxy IP/region ↔ locale/timezone/languages;
 - screen ↔ DPR ↔ viewport ↔ media queries ↔ screenshots;
-- CPU class ↔ UA-CH architecture/bitness ↔ cores/memory ↔ WASM/V8 features;
-- GPU model ↔ WebGL/WebGPU identity ↔ extensions/limits ↔ Canvas/shaders/codecs;
+- Canvas ↔ WebGL ↔ WebGPU ↔ graphics limits;
 - media device IDs/permissions между reload, origins и профилями;
 - одинаковый snapshot во всех execution contexts;
 - стабильность в одном профиле и предусмотренное различие двух профилей.
